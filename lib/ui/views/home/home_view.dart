@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 
@@ -16,9 +18,8 @@ class HomeView extends StackedView<HomeViewModel> {
       body: SafeArea(
         child: Center(
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              const SizedBox(height: 100),
               const Text(
                 'Welcome to WorkCheck',
                 style: TextStyle(
@@ -38,6 +39,51 @@ class HomeView extends StackedView<HomeViewModel> {
                     : Text(
                         viewModel.timer != null ? 'Stop Work' : 'Start Work'),
               ),
+              const SizedBox(height: 20),
+              if (viewModel.screenshots.isNotEmpty)
+                Expanded(
+                  child: GridView.count(
+                    crossAxisCount: 4,
+                    mainAxisSpacing: 10,
+                    crossAxisSpacing: 10,
+                    childAspectRatio: 16 / 9,
+                    children: List.generate(
+                      viewModel.screenshots.length,
+                      (index) => Stack(
+                        children: [
+                          AspectRatio(
+                            aspectRatio: 16 / 9,
+                            child: Image.file(
+                              File(viewModel.screenshots[index]),
+                              fit: BoxFit.fill,
+                            ),
+                          ),
+                          // name file
+                          Positioned(
+                            bottom: 0,
+                            left: 0,
+                            right: 0,
+                            child: Container(
+                              color: Colors.black.withOpacity(0.5),
+                              padding: const EdgeInsets.all(8),
+                              child: Text(
+                                viewModel.screenshots[index]
+                                    .split('/')
+                                    .last
+                                    .split('.')
+                                    .first,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
             ],
           ),
         ),
@@ -50,4 +96,12 @@ class HomeView extends StackedView<HomeViewModel> {
     BuildContext context,
   ) =>
       HomeViewModel();
+
+  @override
+  void onViewModelReady(
+    HomeViewModel viewModel,
+  ) {
+    viewModel.init();
+    super.onViewModelReady(viewModel);
+  }
 }

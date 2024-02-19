@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
@@ -13,8 +14,14 @@ class HomeViewModel extends BaseViewModel {
   final _shellService = locator<ShellService>();
 
   Timer? _timer;
-
   Timer? get timer => _timer;
+
+  List<String> _screenshots = [];
+  List<String> get screenshots => _screenshots;
+
+  void init() {
+    _getScreenshots();
+  }
 
   Future<void> onStartWork() async {
     if (isBusy) return;
@@ -47,9 +54,22 @@ class HomeViewModel extends BaseViewModel {
       );
 
       log.i(result);
+      _getScreenshots();
     } catch (e) {
       log.e(e);
     }
+  }
+
+  void _getScreenshots() async {
+    final cacheDir = await getApplicationCacheDirectory();
+    final files = cacheDir.listSync();
+    _screenshots = files
+        .whereType<File>()
+        .map((file) => file.path)
+        .where((path) => path.endsWith('.jpg'))
+        .toList();
+    _screenshots.sort();
+    rebuildUi();
   }
 
   @override
