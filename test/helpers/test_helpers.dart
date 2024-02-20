@@ -4,6 +4,7 @@ import 'package:workcheck/app/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:workcheck/services/shell_service.dart';
 import 'package:workcheck/services/replicate_service.dart';
+import 'package:workcheck/services/prediction_service.dart';
 // @stacked-import
 
 import 'test_helpers.mocks.dart';
@@ -14,6 +15,7 @@ import 'test_helpers.mocks.dart';
   MockSpec<DialogService>(onMissingStub: OnMissingStub.returnDefault),
   MockSpec<ShellService>(onMissingStub: OnMissingStub.returnDefault),
   MockSpec<ReplicateService>(onMissingStub: OnMissingStub.returnDefault),
+  MockSpec<PredictionService>(onMissingStub: OnMissingStub.returnDefault),
 // @stacked-mock-spec
 ])
 void registerServices() {
@@ -22,6 +24,7 @@ void registerServices() {
   getAndRegisterDialogService();
   getAndRegisterShellService();
   getAndRegisterReplicateService();
+  getAndRegisterPredictionService();
 // @stacked-mock-register
 }
 
@@ -86,6 +89,13 @@ MockReplicateService getAndRegisterReplicateService() {
   _removeRegistrationIfExists<ReplicateService>();
   final service = MockReplicateService();
   locator.registerSingleton<ReplicateService>(service);
+  return service;
+}
+
+MockPredictionService getAndRegisterPredictionService() {
+  _removeRegistrationIfExists<PredictionService>();
+  final service = MockPredictionService();
+  locator.registerSingleton<PredictionService>(service);
   return service;
 }
 // @stacked-mock-create
