@@ -40,7 +40,15 @@ class HomeView extends StackedView<HomeViewModel> {
                         viewModel.timer != null ? 'Stop Work' : 'Start Work'),
               ),
               const SizedBox(height: 20),
-              if (viewModel.screenshots.isNotEmpty)
+              if (viewModel.prediction != null)
+                Text(
+                  'Prediction: ${viewModel.prediction}',
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                )
+              else if (viewModel.screenshots.isNotEmpty)
                 Expanded(
                   child: GridView.count(
                     crossAxisCount: 4,
