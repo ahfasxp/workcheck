@@ -1,3 +1,4 @@
+import 'package:flutter_udid/flutter_udid.dart';
 import 'package:stacked/stacked.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:workcheck/app/app.logger.dart';
@@ -21,17 +22,17 @@ class PredictionService with ListenableServiceMixin {
   List<PredictionResultModel> get predictionResults =>
       _predictionResults.toList();
 
-  /// yorickvp/llava-13b
-  static const String _modelVersion =
-      'e272157381e2a3bf12df3a8edd1f38d1dbd736bbb7437277c8b34175f8fce358';
-
   /// Run predict
   Future<void> runPredict({
     required String base64Image,
   }) async {
     try {
+      final deviceId = await FlutterUdid.consistentUdid;
+
       final body = {
-        "version": _modelVersion,
+        "deviceId": deviceId,
+        "model":
+            "yorickvp/llava-13b:a0fdc44e4f2e1f20f2bb4e27846899953ac8e66c5886c5878fa1d6b73ce009e5",
         "input": {
           "image": base64Image,
           "prompt": "Act as workcheck. Please make summary of the screenshot.",
@@ -39,7 +40,6 @@ class PredictionService with ListenableServiceMixin {
           "max_tokens": 200,
           "temperature": 0.2
         },
-        "stream": true,
       };
 
       await _supabase.functions.invoke(
