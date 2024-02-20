@@ -62,7 +62,7 @@ class ReplicateService {
           "input": {
             "image": base64Image,
             "prompt":
-                "Act as workcheck. Please make summary of the screenshot.",
+                "Analyze the series of screenshots captured at 30-second intervals and produce comprehensive summaries outlining the activities depicted in the images.",
             "top_p": 1,
             "max_tokens": 200,
             "temperature": 0.2
