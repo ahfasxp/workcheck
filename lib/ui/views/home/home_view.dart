@@ -41,11 +41,14 @@ class HomeView extends StackedView<HomeViewModel> {
               ),
               const SizedBox(height: 20),
               if (viewModel.prediction != null)
-                Text(
-                  'Prediction: ${viewModel.prediction}',
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Text(
+                    'Prediction: ${viewModel.prediction}',
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 )
               else if (viewModel.screenshots.isNotEmpty)

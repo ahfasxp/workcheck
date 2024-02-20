@@ -5,6 +5,7 @@ import 'package:workcheck/ui/dialogs/info_alert/info_alert_dialog.dart';
 import 'package:workcheck/ui/views/home/home_view.dart';
 import 'package:workcheck/ui/views/startup/startup_view.dart';
 import 'package:workcheck/services/shell_service.dart';
+import 'package:workcheck/services/replicate_service.dart';
 // @stacked-import
 
 @StackedApp(
@@ -18,6 +19,7 @@ import 'package:workcheck/services/shell_service.dart';
     LazySingleton(classType: DialogService),
     LazySingleton(classType: NavigationService),
     LazySingleton(classType: ShellService),
+    LazySingleton(classType: ReplicateService),
 // @stacked-service
   ],
   bottomsheets: [

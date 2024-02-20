@@ -3,6 +3,7 @@ import 'package:mockito/mockito.dart';
 import 'package:workcheck/app/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:workcheck/services/shell_service.dart';
+import 'package:workcheck/services/replicate_service.dart';
 // @stacked-import
 
 import 'test_helpers.mocks.dart';
@@ -12,6 +13,7 @@ import 'test_helpers.mocks.dart';
   MockSpec<BottomSheetService>(onMissingStub: OnMissingStub.returnDefault),
   MockSpec<DialogService>(onMissingStub: OnMissingStub.returnDefault),
   MockSpec<ShellService>(onMissingStub: OnMissingStub.returnDefault),
+  MockSpec<ReplicateService>(onMissingStub: OnMissingStub.returnDefault),
 // @stacked-mock-spec
 ])
 void registerServices() {
@@ -19,6 +21,7 @@ void registerServices() {
   getAndRegisterBottomSheetService();
   getAndRegisterDialogService();
   getAndRegisterShellService();
+  getAndRegisterReplicateService();
 // @stacked-mock-register
 }
 
@@ -76,6 +79,13 @@ MockShellService getAndRegisterShellService() {
   _removeRegistrationIfExists<ShellService>();
   final service = MockShellService();
   locator.registerSingleton<ShellService>(service);
+  return service;
+}
+
+MockReplicateService getAndRegisterReplicateService() {
+  _removeRegistrationIfExists<ReplicateService>();
+  final service = MockReplicateService();
+  locator.registerSingleton<ReplicateService>(service);
   return service;
 }
 // @stacked-mock-create

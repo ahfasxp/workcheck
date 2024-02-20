@@ -10,6 +10,7 @@ import 'package:flutter/material.dart' as _i4;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:mockito/src/dummies.dart' as _i3;
 import 'package:stacked_services/stacked_services.dart' as _i2;
+import 'package:workcheck/services/replicate_service.dart' as _i8;
 import 'package:workcheck/services/shell_service.dart' as _i7;
 
 // ignore_for_file: type=lint
@@ -675,4 +676,32 @@ class MockDialogService extends _i1.Mock implements _i2.DialogService {
 /// A class which mocks [ShellService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockShellService extends _i1.Mock implements _i7.ShellService {}
+class MockShellService extends _i1.Mock implements _i7.ShellService {
+  @override
+  _i5.Future<String> run(String? command) => (super.noSuchMethod(
+        Invocation.method(
+          #run,
+          [command],
+        ),
+        returnValue: _i5.Future<String>.value(_i3.dummyValue<String>(
+          this,
+          Invocation.method(
+            #run,
+            [command],
+          ),
+        )),
+        returnValueForMissingStub:
+            _i5.Future<String>.value(_i3.dummyValue<String>(
+          this,
+          Invocation.method(
+            #run,
+            [command],
+          ),
+        )),
+      ) as _i5.Future<String>);
+}
+
+/// A class which mocks [ReplicateService].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockReplicateService extends _i1.Mock implements _i8.ReplicateService {}

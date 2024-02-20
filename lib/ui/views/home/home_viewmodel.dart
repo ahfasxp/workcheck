@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 import 'dart:math';
 import 'dart:ui' as ui;
 
@@ -12,12 +14,14 @@ import 'package:workcheck/app/app.locator.dart';
 import 'package:workcheck/app/app.logger.dart';
 import 'package:workcheck/enums/image_layout_type.dart';
 import 'package:workcheck/enums/image_resolution_type.dart';
+import 'package:workcheck/services/replicate_service.dart';
 import 'package:workcheck/services/shell_service.dart';
 
 class HomeViewModel extends BaseViewModel {
   final log = getLogger('HomeViewModel');
 
   final _shellService = locator<ShellService>();
+  final _replicateService = locator<ReplicateService>();
 
   Timer? _timer;
   Timer? get timer => _timer;
@@ -107,14 +111,40 @@ class HomeViewModel extends BaseViewModel {
         screenshots.map((path) => File(path).readAsBytes()),
       );
 
-      final bytes = await _captureScreenShoots(screenShoots);
+      final screenShootsImage = await _captureScreenShoots(screenShoots);
 
-      if (bytes != null) {
-        // TODO: Send bytes to the model
+      if (screenShootsImage == null) return;
 
-        _prediction = 'Worked for 8 hours';
+      final base64Image =
+          "data:image/jpeg;base64,${base64Encode(screenShootsImage)}";
+
+      final response =
+          await _replicateService.createPredict(base64Image: base64Image);
+
+      log.i('Response: $response');
+
+      if (response.urls.stream == null) return;
+
+      // listen stream with isolate
+      final receivePort = ReceivePort();
+
+      await Isolate.spawn(
+        ReplicateService.streamPredict,
+        StreamPredictArguments(
+          sendPort: receivePort.sendPort,
+          streamUrl: response.urls.stream!,
+        ),
+        onExit: receivePort.sendPort,
+      );
+
+      receivePort.listen((response) {
+        log.i('Response: $response');
+
+        _prediction = response;
         rebuildUi();
-      }
+
+        receivePort.close();
+      });
     } catch (e) {
       log.e(e);
     }
