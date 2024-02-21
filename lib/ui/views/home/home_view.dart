@@ -21,7 +21,7 @@ class HomeView extends StackedView<HomeViewModel> {
         child: Center(
           child: Column(
             children: [
-              const SizedBox(height: 100),
+              const SizedBox(height: 50),
               const Text(
                 'Welcome to WorkCheck',
                 style: TextStyle(
@@ -41,6 +41,28 @@ class HomeView extends StackedView<HomeViewModel> {
                     : Text(
                         viewModel.timer != null ? 'Stop Work' : 'Start Work'),
               ),
+              const SizedBox(height: 10),
+              if (viewModel.timer == null &&
+                  viewModel.predictionResults.isNotEmpty)
+                ElevatedButton(
+                  onPressed: viewModel.getSummaryOfToday,
+                  child: viewModel.busy('getSummaryOfToday')
+                      ? const SizedBox.square(
+                          dimension: 20,
+                          child: CircularProgressIndicator(),
+                        )
+                      : const Text('Get Summary'),
+                ),
+              if (viewModel.summaryOfToday != null)
+                Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Text(
+                    viewModel.summaryOfToday!,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
               const SizedBox(height: 20),
               Expanded(
                 child: Row(
@@ -116,7 +138,7 @@ class HomeView extends StackedView<HomeViewModel> {
                                     ),
                                   ),
                                   subtitle: Text(
-                                    predictionResult.output,
+                                    predictionResult.description,
                                   ),
                                 );
                               },

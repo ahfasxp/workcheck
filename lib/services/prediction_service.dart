@@ -3,6 +3,7 @@ import 'package:stacked/stacked.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:workcheck/app/app.logger.dart';
 import 'package:workcheck/enums/pg_table_type.dart';
+import 'package:workcheck/extensions/date_extensions.dart';
 import 'package:workcheck/models/prediction_result_model.dart';
 
 class PredictionService with ListenableServiceMixin {
@@ -35,10 +36,10 @@ class PredictionService with ListenableServiceMixin {
             "yorickvp/llava-13b:a0fdc44e4f2e1f20f2bb4e27846899953ac8e66c5886c5878fa1d6b73ce009e5",
         "input": {
           "image": base64Image,
-          "prompt": "Act as workcheck. Please make summary of the screenshot.",
+          "prompt": "What is being done?",
           "top_p": 1,
-          "max_tokens": 200,
-          "temperature": 0.2
+          "temperature": 0.2,
+          "max_tokens": 200
         },
       };
 
@@ -105,5 +106,35 @@ class PredictionService with ListenableServiceMixin {
     _log.wtf('disposeStream');
 
     _realtimeChannel?.unsubscribe();
+  }
+
+  Future<List<String>> getDescriptions({
+    required DateTime from,
+    required DateTime to,
+  }) async {
+    try {
+      final deviceId = await FlutterUdid.consistentUdid;
+
+      final response = await _supabase
+          .from(PgTableType.predictionResults.name)
+          .select()
+          .eq('device_id', deviceId)
+          .gte('created_at', from.toUtc().toIso8601String())
+          .lte('created_at', to.toUtc().toIso8601String())
+          .order('created_at', ascending: true);
+
+      final descriptions = <String>[];
+
+      for (final json in response) {
+        final predictionResult = PredictionResultModel.fromJson(json);
+        descriptions.add(
+            '[${predictionResult.createdAt.toddMMyyyyHHmmss}] ${predictionResult.description}');
+      }
+
+      return descriptions;
+    } catch (e) {
+      _log.e(e);
+      rethrow;
+    }
   }
 }

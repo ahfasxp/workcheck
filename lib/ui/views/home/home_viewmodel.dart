@@ -9,11 +9,13 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:stacked/stacked.dart';
+import 'package:stacked_services/stacked_services.dart';
 import 'package:workcheck/app/app.locator.dart';
 import 'package:workcheck/app/app.logger.dart';
 import 'package:workcheck/enums/image_layout_type.dart';
 import 'package:workcheck/enums/image_resolution_type.dart';
 import 'package:workcheck/models/prediction_result_model.dart';
+import 'package:workcheck/services/open_ai_service.dart';
 import 'package:workcheck/services/prediction_service.dart';
 import 'package:workcheck/services/shell_service.dart';
 
@@ -22,6 +24,8 @@ class HomeViewModel extends ReactiveViewModel {
 
   final _shellService = locator<ShellService>();
   final _predictionService = locator<PredictionService>();
+  final _dialogService = locator<DialogService>();
+  final _openAiService = locator<OpenAiService>();
 
   Timer? _timer;
   Timer? get timer => _timer;
@@ -31,6 +35,9 @@ class HomeViewModel extends ReactiveViewModel {
 
   List<PredictionResultModel> get predictionResults =>
       _predictionService.predictionResults;
+
+  String? _summaryOfToday;
+  String? get summaryOfToday => _summaryOfToday;
 
   void init() {
     _getScreenshots();
@@ -44,17 +51,14 @@ class HomeViewModel extends ReactiveViewModel {
     setBusy(true);
 
     try {
-      _screenshots = [];
-      // delete all screenshots
-      final cacheDir = await getApplicationCacheDirectory();
-      for (final file in cacheDir.listSync()) {
-        if (file is File && file.path.endsWith('.jpg')) {
-          file.delete();
-        }
-      }
+      await _deleteScreenshots();
 
-      _timer = Timer.periodic(const Duration(seconds: 30), (timer) {
-        _takeScreenshot();
+      _timer = Timer.periodic(const Duration(seconds: 5), (timer) async {
+        if (_screenshots.length > 5) {
+          await _getPrediction();
+        } else {
+          await _takeScreenshot();
+        }
       });
     } catch (e) {
       log.e(e);
@@ -85,18 +89,17 @@ class HomeViewModel extends ReactiveViewModel {
       final date = DateFormat('yyyy-MM-dd_HH-mm-ss').format(DateTime.now());
       final cacheDir = await getApplicationCacheDirectory();
 
-      final result = await _shellService.run(
+      await _shellService.run(
         'screencapture -x -t jpg ${cacheDir.path}/$date.jpg',
       );
 
-      log.i(result);
-      _getScreenshots();
+      await _getScreenshots();
     } catch (e) {
       log.e(e);
     }
   }
 
-  void _getScreenshots() async {
+  Future<void> _getScreenshots() async {
     try {
       final cacheDir = await getApplicationCacheDirectory();
       final files = cacheDir.listSync();
@@ -112,28 +115,49 @@ class HomeViewModel extends ReactiveViewModel {
     }
   }
 
+  Future<void> _deleteScreenshots() async {
+    try {
+      _screenshots = [];
+      // delete all screenshots
+      final cacheDir = await getApplicationCacheDirectory();
+      for (final file in cacheDir.listSync()) {
+        if (file is File && file.path.endsWith('.jpg')) {
+          file.delete();
+        }
+      }
+    } catch (e) {
+      log.e(e);
+    }
+  }
+
   Future<void> _getPrediction() async {
-    if (screenshots.isEmpty) return;
+    if (_screenshots.isEmpty) return;
 
     try {
       final screenShoots = await Future.wait(
-        screenshots.map((path) => File(path).readAsBytes()),
+        _screenshots.map((path) => File(path).readAsBytes()),
       );
 
-      final screenShootsImage = await _captureScreenShoots(screenShoots);
+      final screenShootsImage = screenShoots.length == 1
+          ? screenShoots.first
+          : await _captureScreenShoots(screenShoots);
 
       if (screenShootsImage == null) return;
 
       final base64Image =
           "data:image/jpeg;base64,${base64Encode(screenShootsImage)}";
 
-      await _predictionService.runPredict(base64Image: base64Image);
+      _predictionService.runPredict(base64Image: base64Image);
+
+      await _deleteScreenshots();
     } catch (e) {
       log.e(e);
     }
   }
 
   Future<Uint8List?> _captureScreenShoots(List<Uint8List> screenShoots) async {
+    log.i('ScreenShoots: ${screenShoots.length}');
+
     try {
       // Create a PictureRecorder
       ui.PictureRecorder recorder = ui.PictureRecorder();
@@ -144,7 +168,9 @@ class HomeViewModel extends ReactiveViewModel {
       // Set a fixed height for the images
       double maxHeight = imageResolutionType.height;
 
-      const imageLayoutType = ImageLayoutType.fourLines;
+      final imageLayoutType = screenShoots.length < 3
+          ? ImageLayoutType.oneLine
+          : ImageLayoutType.twoLines;
 
       double? minOffsetDx;
       double? minOffsetDy;
@@ -219,6 +245,51 @@ class HomeViewModel extends ReactiveViewModel {
     } catch (e) {
       log.e('Error capturing screenshot: $e');
       return null;
+    }
+  }
+
+  Future<void> getSummaryOfToday() async {
+    if (busy('getSummaryOfToday')) return;
+    setBusyForObject('getSummaryOfToday', true);
+
+    _summaryOfToday = null;
+
+    try {
+      // today 00:00
+      final from = DateTime.now().add(
+        Duration(
+          hours: -DateTime.now().hour,
+          minutes: -DateTime.now().minute,
+          seconds: -DateTime.now().second,
+        ),
+      );
+      // today 23:59
+      final to = DateTime.now().add(
+        Duration(
+          hours: 23 - DateTime.now().hour,
+          minutes: 59 - DateTime.now().minute,
+          seconds: 59 - DateTime.now().second,
+        ),
+      );
+
+      final descriptions = await _predictionService.getDescriptions(
+        from: from,
+        to: to,
+      );
+
+      if (descriptions.isEmpty) {
+        throw 'There are no descriptions for today. Please wait for the next prediction.';
+      }
+
+      _summaryOfToday = await _openAiService.getSummaryOfToday(descriptions);
+    } catch (e) {
+      log.e(e);
+
+      await _dialogService.showDialog(
+        description: e.toString(),
+      );
+    } finally {
+      setBusyForObject('getSummaryOfToday', false);
     }
   }
 

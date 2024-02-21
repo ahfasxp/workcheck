@@ -7,6 +7,7 @@ import 'package:workcheck/ui/views/startup/startup_view.dart';
 import 'package:workcheck/services/shell_service.dart';
 import 'package:workcheck/services/replicate_service.dart';
 import 'package:workcheck/services/prediction_service.dart';
+import 'package:workcheck/services/open_ai_service.dart';
 // @stacked-import
 
 @StackedApp(
@@ -22,6 +23,7 @@ import 'package:workcheck/services/prediction_service.dart';
     LazySingleton(classType: ShellService),
     LazySingleton(classType: ReplicateService),
     LazySingleton(classType: PredictionService),
+    LazySingleton(classType: OpenAiService),
 // @stacked-service
   ],
   bottomsheets: [

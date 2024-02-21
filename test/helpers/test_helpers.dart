@@ -5,6 +5,7 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:workcheck/services/shell_service.dart';
 import 'package:workcheck/services/replicate_service.dart';
 import 'package:workcheck/services/prediction_service.dart';
+import 'package:workcheck/services/open_ai_service.dart';
 // @stacked-import
 
 import 'test_helpers.mocks.dart';
@@ -16,6 +17,7 @@ import 'test_helpers.mocks.dart';
   MockSpec<ShellService>(onMissingStub: OnMissingStub.returnDefault),
   MockSpec<ReplicateService>(onMissingStub: OnMissingStub.returnDefault),
   MockSpec<PredictionService>(onMissingStub: OnMissingStub.returnDefault),
+  MockSpec<OpenAiService>(onMissingStub: OnMissingStub.returnDefault),
 // @stacked-mock-spec
 ])
 void registerServices() {
@@ -25,6 +27,7 @@ void registerServices() {
   getAndRegisterShellService();
   getAndRegisterReplicateService();
   getAndRegisterPredictionService();
+  getAndRegisterOpenAiService();
 // @stacked-mock-register
 }
 
@@ -96,6 +99,13 @@ MockPredictionService getAndRegisterPredictionService() {
   _removeRegistrationIfExists<PredictionService>();
   final service = MockPredictionService();
   locator.registerSingleton<PredictionService>(service);
+  return service;
+}
+
+MockOpenAiService getAndRegisterOpenAiService() {
+  _removeRegistrationIfExists<OpenAiService>();
+  final service = MockOpenAiService();
+  locator.registerSingleton<OpenAiService>(service);
   return service;
 }
 // @stacked-mock-create

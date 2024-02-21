@@ -11,6 +11,8 @@ import 'package:mockito/mockito.dart' as _i1;
 import 'package:mockito/src/dummies.dart' as _i4;
 import 'package:stacked_services/stacked_services.dart' as _i3;
 import 'package:workcheck/models/prediction_model.dart' as _i2;
+import 'package:workcheck/models/prediction_result_model.dart' as _i11;
+import 'package:workcheck/services/open_ai_service.dart' as _i12;
 import 'package:workcheck/services/prediction_service.dart' as _i10;
 import 'package:workcheck/services/replicate_service.dart' as _i9;
 import 'package:workcheck/services/shell_service.dart' as _i8;
@@ -751,5 +753,91 @@ class MockReplicateService extends _i1.Mock implements _i9.ReplicateService {
 /// A class which mocks [PredictionService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockPredictionService extends _i1.Mock
-    implements _i10.PredictionService {}
+class MockPredictionService extends _i1.Mock implements _i10.PredictionService {
+  @override
+  List<_i11.PredictionResultModel> get predictionResults => (super.noSuchMethod(
+        Invocation.getter(#predictionResults),
+        returnValue: <_i11.PredictionResultModel>[],
+        returnValueForMissingStub: <_i11.PredictionResultModel>[],
+      ) as List<_i11.PredictionResultModel>);
+
+  @override
+  int get listenersCount => (super.noSuchMethod(
+        Invocation.getter(#listenersCount),
+        returnValue: 0,
+        returnValueForMissingStub: 0,
+      ) as int);
+
+  @override
+  _i6.Future<void> runPredict({required String? base64Image}) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #runPredict,
+          [],
+          {#base64Image: base64Image},
+        ),
+        returnValue: _i6.Future<void>.value(),
+        returnValueForMissingStub: _i6.Future<void>.value(),
+      ) as _i6.Future<void>);
+
+  @override
+  _i6.Future<void> startStreamByDeviceId() => (super.noSuchMethod(
+        Invocation.method(
+          #startStreamByDeviceId,
+          [],
+        ),
+        returnValue: _i6.Future<void>.value(),
+        returnValueForMissingStub: _i6.Future<void>.value(),
+      ) as _i6.Future<void>);
+
+  @override
+  void disposeStream() => super.noSuchMethod(
+        Invocation.method(
+          #disposeStream,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void listenToReactiveValues(List<dynamic>? reactiveValues) =>
+      super.noSuchMethod(
+        Invocation.method(
+          #listenToReactiveValues,
+          [reactiveValues],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void addListener(void Function()? listener) => super.noSuchMethod(
+        Invocation.method(
+          #addListener,
+          [listener],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void removeListener(void Function()? listener) => super.noSuchMethod(
+        Invocation.method(
+          #removeListener,
+          [listener],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void notifyListeners() => super.noSuchMethod(
+        Invocation.method(
+          #notifyListeners,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
+}
+
+/// A class which mocks [OpenAiService].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockOpenAiService extends _i1.Mock implements _i12.OpenAiService {}
