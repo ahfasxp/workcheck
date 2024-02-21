@@ -14,6 +14,8 @@ class HomeView extends StackedView<HomeViewModel> {
     HomeViewModel viewModel,
     Widget? child,
   ) {
+    final width = MediaQuery.of(context).size.width;
+
     return Scaffold(
       body: SafeArea(
         child: Center(
@@ -40,61 +42,92 @@ class HomeView extends StackedView<HomeViewModel> {
                         viewModel.timer != null ? 'Stop Work' : 'Start Work'),
               ),
               const SizedBox(height: 20),
-              if (viewModel.prediction != null)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Text(
-                    'Prediction: ${viewModel.prediction}',
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                )
-              else if (viewModel.screenshots.isNotEmpty)
-                Expanded(
-                  child: GridView.count(
-                    crossAxisCount: 4,
-                    mainAxisSpacing: 10,
-                    crossAxisSpacing: 10,
-                    childAspectRatio: 16 / 9,
-                    children: List.generate(
-                      viewModel.screenshots.length,
-                      (index) => Stack(
-                        children: [
-                          AspectRatio(
-                            aspectRatio: 16 / 9,
-                            child: Image.file(
-                              File(viewModel.screenshots[index]),
-                              fit: BoxFit.fill,
-                            ),
-                          ),
-                          // name file
-                          Positioned(
-                            bottom: 0,
-                            left: 0,
-                            right: 0,
-                            child: Container(
-                              color: Colors.black.withOpacity(0.5),
-                              padding: const EdgeInsets.all(8),
-                              child: Text(
-                                viewModel.screenshots[index]
-                                    .split('/')
-                                    .last
-                                    .split('.')
-                                    .first,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
+              Expanded(
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: width * 0.7,
+                      child: GridView.count(
+                        crossAxisCount: 4,
+                        mainAxisSpacing: 10,
+                        crossAxisSpacing: 10,
+                        childAspectRatio: 16 / 9,
+                        children: List.generate(
+                          viewModel.screenshots.length,
+                          (index) => Stack(
+                            children: [
+                              AspectRatio(
+                                aspectRatio: 16 / 9,
+                                child: Image.file(
+                                  File(viewModel.screenshots[index]),
+                                  fit: BoxFit.fill,
                                 ),
                               ),
+                              // name file
+                              Positioned(
+                                bottom: 0,
+                                left: 0,
+                                right: 0,
+                                child: Container(
+                                  color: Colors.black.withOpacity(0.5),
+                                  padding: const EdgeInsets.all(8),
+                                  child: Text(
+                                    viewModel.screenshots[index]
+                                        .split('/')
+                                        .last
+                                        .split('.')
+                                        .first,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      width: width * 0.3,
+                      child: Column(
+                        children: [
+                          const Text(
+                            'Prediction Results',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Expanded(
+                            child: ListView.builder(
+                              itemCount: viewModel.predictionResults.length,
+                              itemBuilder: (context, index) {
+                                final predictionResult = viewModel
+                                    .predictionResults.reversed
+                                    .elementAt(index);
+
+                                return ListTile(
+                                  title: Text(
+                                    predictionResult.createdAt.toString(),
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  subtitle: Text(
+                                    predictionResult.output,
+                                  ),
+                                );
+                              },
                             ),
                           ),
                         ],
                       ),
                     ),
-                  ),
+                  ],
                 ),
+              ),
             ],
           ),
         ),

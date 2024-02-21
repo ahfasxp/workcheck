@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:isolate';
 import 'dart:math';
 import 'dart:ui' as ui;
 
@@ -14,14 +13,15 @@ import 'package:workcheck/app/app.locator.dart';
 import 'package:workcheck/app/app.logger.dart';
 import 'package:workcheck/enums/image_layout_type.dart';
 import 'package:workcheck/enums/image_resolution_type.dart';
-import 'package:workcheck/services/replicate_service.dart';
+import 'package:workcheck/models/prediction_result_model.dart';
+import 'package:workcheck/services/prediction_service.dart';
 import 'package:workcheck/services/shell_service.dart';
 
-class HomeViewModel extends BaseViewModel {
+class HomeViewModel extends ReactiveViewModel {
   final log = getLogger('HomeViewModel');
 
   final _shellService = locator<ShellService>();
-  final _replicateService = locator<ReplicateService>();
+  final _predictionService = locator<PredictionService>();
 
   Timer? _timer;
   Timer? get timer => _timer;
@@ -29,11 +29,13 @@ class HomeViewModel extends BaseViewModel {
   List<String> _screenshots = [];
   List<String> get screenshots => _screenshots;
 
-  String? _prediction;
-  String? get prediction => _prediction;
+  List<PredictionResultModel> get predictionResults =>
+      _predictionService.predictionResults;
 
   void init() {
     _getScreenshots();
+
+    _predictionService.startStreamByDeviceId();
   }
 
   Future<void> onStartWork() async {
@@ -42,8 +44,15 @@ class HomeViewModel extends BaseViewModel {
     setBusy(true);
 
     try {
-      _prediction = null;
-      await _takeScreenshot();
+      _screenshots = [];
+      // delete all screenshots
+      final cacheDir = await getApplicationCacheDirectory();
+      for (final file in cacheDir.listSync()) {
+        if (file is File && file.path.endsWith('.jpg')) {
+          file.delete();
+        }
+      }
+
       _timer = Timer.periodic(const Duration(seconds: 30), (timer) {
         _takeScreenshot();
       });
@@ -118,33 +127,7 @@ class HomeViewModel extends BaseViewModel {
       final base64Image =
           "data:image/jpeg;base64,${base64Encode(screenShootsImage)}";
 
-      final response =
-          await _replicateService.createPredict(base64Image: base64Image);
-
-      log.i('Response: $response');
-
-      if (response.urls.stream == null) return;
-
-      // listen stream with isolate
-      final receivePort = ReceivePort();
-
-      await Isolate.spawn(
-        ReplicateService.streamPredict,
-        StreamPredictArguments(
-          sendPort: receivePort.sendPort,
-          streamUrl: response.urls.stream!,
-        ),
-        onExit: receivePort.sendPort,
-      );
-
-      receivePort.listen((response) {
-        log.i('Response: $response');
-
-        _prediction = response;
-        rebuildUi();
-
-        receivePort.close();
-      });
+      await _predictionService.runPredict(base64Image: base64Image);
     } catch (e) {
       log.e(e);
     }
@@ -242,6 +225,10 @@ class HomeViewModel extends BaseViewModel {
   @override
   void dispose() {
     _timer?.cancel();
+    _predictionService.disposeStream();
     super.dispose();
   }
+
+  @override
+  List<ListenableServiceMixin> get listenableServices => [_predictionService];
 }

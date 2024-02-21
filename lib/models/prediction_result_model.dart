@@ -15,7 +15,7 @@ class PredictionResultModel extends Equatable {
     return PredictionResultModel(
       id: json['id'] as String,
       output: json['output'] as String,
-      createdAt: DateTime.parse(json['created_at'] as String),
+      createdAt: DateTime.parse(json['created_at'] as String).toLocal(),
     );
   }
 

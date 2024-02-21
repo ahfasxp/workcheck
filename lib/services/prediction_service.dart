@@ -55,7 +55,9 @@ class PredictionService with ListenableServiceMixin {
     }
   }
 
-  Future<void> startStreamByDeviceId(String deviceId) async {
+  Future<void> startStreamByDeviceId() async {
+    final deviceId = await FlutterUdid.consistentUdid;
+
     _log.wtf('startStreamByDeviceId: $deviceId');
 
     _predictionResults.clear();
