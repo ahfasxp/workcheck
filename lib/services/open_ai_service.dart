@@ -42,7 +42,7 @@ class OpenAiService {
   Future<String> getSummaryOfToday(List<String> descriptions) async {
     try {
       final prompt =
-          'Generate a summary of today\'s events based on the following descriptions. Give a brief overview of what was done throughout the day.\n\n${descriptions.join('\n\n')}';
+          'Make a summary based on the following description. Give a brief description of what is done?\n\n${descriptions.join('\n\n')}';
 
       final response = await _openAIClient.post(
         'completions',
