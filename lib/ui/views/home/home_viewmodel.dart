@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:math';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
@@ -12,8 +11,6 @@ import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:workcheck/app/app.locator.dart';
 import 'package:workcheck/app/app.logger.dart';
-import 'package:workcheck/enums/image_layout_type.dart';
-import 'package:workcheck/enums/image_resolution_type.dart';
 import 'package:workcheck/models/prediction_result_model.dart';
 import 'package:workcheck/services/open_ai_service.dart';
 import 'package:workcheck/services/prediction_service.dart';
@@ -53,11 +50,10 @@ class HomeViewModel extends ReactiveViewModel {
     try {
       await _deleteScreenshots();
 
-      _timer = Timer.periodic(const Duration(seconds: 5), (timer) async {
-        if (_screenshots.length > 5) {
+      _timer = Timer.periodic(const Duration(seconds: 30), (timer) async {
+        await _takeScreenshot();
+        if (_screenshots.length > 3) {
           await _getPrediction();
-        } else {
-          await _takeScreenshot();
         }
       });
     } catch (e) {
@@ -147,9 +143,9 @@ class HomeViewModel extends ReactiveViewModel {
       final base64Image =
           "data:image/jpeg;base64,${base64Encode(screenShootsImage)}";
 
-      _predictionService.runPredict(base64Image: base64Image);
-
       await _deleteScreenshots();
+
+      await _predictionService.runPredict(base64Image: base64Image);
     } catch (e) {
       log.e(e);
     }
@@ -163,77 +159,35 @@ class HomeViewModel extends ReactiveViewModel {
       ui.PictureRecorder recorder = ui.PictureRecorder();
       Canvas canvas = Canvas(recorder);
 
-      const imageResolutionType = ImageResolutionType.original;
-
-      // Set a fixed height for the images
-      double maxHeight = imageResolutionType.height;
-
-      final imageLayoutType = screenShoots.length < 3
-          ? ImageLayoutType.oneLine
-          : ImageLayoutType.twoLines;
-
-      double? minOffsetDx;
-      double? minOffsetDy;
-
-      double maxOffsetDx = 0;
-      double maxOffsetDy = 0;
+      // Draw each image onto the canvas with padding
+      double currentOffset = 0.0;
+      double padding = 10.0; // Adjust the padding as needed
+      double maxHeight = 0.0;
 
       for (Uint8List bytes in screenShoots) {
         ui.Codec codec = await ui.instantiateImageCodec(bytes);
         ui.FrameInfo frameInfo = await codec.getNextFrame();
         ui.Image image = frameInfo.image;
 
-        if (imageResolutionType.isOriginal) {
+        // Calculate the maximum height
+        if (image.height.toDouble() > maxHeight) {
           maxHeight = image.height.toDouble();
         }
 
-        int imageIndex = screenShoots.indexOf(bytes);
-
-        double scaleFactor = maxHeight / image.height;
-        double scaledWidth = image.width * scaleFactor;
-        double scaledHeight = image.height * scaleFactor;
-
-        final offset = imageLayoutType.getOffset(
-          index: imageIndex,
-          totalImages: screenShoots.length,
-          scaledWidth: scaledWidth,
-        );
-
-        if (offset.dx != 0.0) {
-          minOffsetDx = min(offset.dx, minOffsetDx ?? offset.dx);
-        }
-
-        if (offset.dy != 0.0) {
-          minOffsetDy = min(offset.dy, minOffsetDy ?? offset.dy);
-        }
-
-        maxOffsetDx = max(offset.dx, maxOffsetDx);
-        maxOffsetDy = max(offset.dx, maxOffsetDy);
-
-        canvas.drawImageRect(
-          image,
-          Rect.fromLTRB(
-              0.0, 0.0, image.width.toDouble(), image.height.toDouble()),
-          Rect.fromPoints(
-            offset,
-            Offset(offset.dx + scaledWidth, offset.dy + scaledHeight),
-          ),
-          Paint(),
-        );
+        canvas.drawImage(image, Offset(currentOffset, 0.0), Paint());
+        currentOffset += image.width.toDouble() + padding;
       }
 
-      final totalImageWidth = maxOffsetDx + minOffsetDx!;
-
-      final totalImageHeight =
-          (minOffsetDy ?? (minOffsetDx * .5)) * imageLayoutType.lines;
+      // Calculate the total width needed
+      double totalWidth = currentOffset - padding;
 
       // End recording and obtain the picture
       ui.Picture picture = recorder.endRecording();
 
       // Convert the picture into a rasterized image
       ui.Image finalImage = await picture.toImage(
-        totalImageWidth.round(),
-        totalImageHeight.round(),
+        totalWidth.round(), // Use the calculated total width
+        maxHeight.round(), // Set the height to the maximum height
       );
 
       // Convert the image into bytes
