@@ -12,6 +12,7 @@ import 'package:mockito/src/dummies.dart' as _i4;
 import 'package:stacked_services/stacked_services.dart' as _i3;
 import 'package:workcheck/models/prediction_model.dart' as _i2;
 import 'package:workcheck/models/prediction_result_model.dart' as _i11;
+import 'package:workcheck/services/device_service.dart' as _i13;
 import 'package:workcheck/services/open_ai_service.dart' as _i12;
 import 'package:workcheck/services/prediction_service.dart' as _i10;
 import 'package:workcheck/services/replicate_service.dart' as _i9;
@@ -800,6 +801,24 @@ class MockPredictionService extends _i1.Mock implements _i10.PredictionService {
       );
 
   @override
+  _i6.Future<List<String>> getDescriptions({
+    required DateTime? from,
+    required DateTime? to,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getDescriptions,
+          [],
+          {
+            #from: from,
+            #to: to,
+          },
+        ),
+        returnValue: _i6.Future<List<String>>.value(<String>[]),
+        returnValueForMissingStub: _i6.Future<List<String>>.value(<String>[]),
+      ) as _i6.Future<List<String>>);
+
+  @override
   void listenToReactiveValues(List<dynamic>? reactiveValues) =>
       super.noSuchMethod(
         Invocation.method(
@@ -840,4 +859,33 @@ class MockPredictionService extends _i1.Mock implements _i10.PredictionService {
 /// A class which mocks [OpenAiService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockOpenAiService extends _i1.Mock implements _i12.OpenAiService {}
+class MockOpenAiService extends _i1.Mock implements _i12.OpenAiService {
+  @override
+  _i6.Future<String> getSummaryOfToday(List<String>? descriptions) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getSummaryOfToday,
+          [descriptions],
+        ),
+        returnValue: _i6.Future<String>.value(_i4.dummyValue<String>(
+          this,
+          Invocation.method(
+            #getSummaryOfToday,
+            [descriptions],
+          ),
+        )),
+        returnValueForMissingStub:
+            _i6.Future<String>.value(_i4.dummyValue<String>(
+          this,
+          Invocation.method(
+            #getSummaryOfToday,
+            [descriptions],
+          ),
+        )),
+      ) as _i6.Future<String>);
+}
+
+/// A class which mocks [DeviceService].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockDeviceService extends _i1.Mock implements _i13.DeviceService {}

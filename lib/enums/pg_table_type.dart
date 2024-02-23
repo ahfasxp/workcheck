@@ -1,5 +1,6 @@
 enum PgTableType {
-  predictionResults;
+  predictionResults,
+  devices;
 
   String get name => toString();
 
@@ -8,6 +9,8 @@ enum PgTableType {
     switch (this) {
       case PgTableType.predictionResults:
         return 'prediction_results';
+      case PgTableType.devices:
+        return 'devices';
     }
   }
 }

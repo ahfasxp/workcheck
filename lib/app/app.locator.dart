@@ -11,6 +11,7 @@ import 'package:stacked_services/src/dialog/dialog_service.dart';
 import 'package:stacked_services/src/navigation/navigation_service.dart';
 import 'package:stacked_shared/stacked_shared.dart';
 
+import '../services/device_service.dart';
 import '../services/open_ai_service.dart';
 import '../services/prediction_service.dart';
 import '../services/replicate_service.dart';
@@ -34,4 +35,5 @@ Future<void> setupLocator({
   locator.registerLazySingleton(() => ReplicateService());
   locator.registerLazySingleton(() => PredictionService());
   locator.registerLazySingleton(() => OpenAiService());
+  locator.registerLazySingleton(() => DeviceService());
 }

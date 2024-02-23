@@ -8,11 +8,10 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:stacked/stacked.dart';
-import 'package:stacked_services/stacked_services.dart';
 import 'package:workcheck/app/app.locator.dart';
 import 'package:workcheck/app/app.logger.dart';
 import 'package:workcheck/models/prediction_result_model.dart';
-import 'package:workcheck/services/open_ai_service.dart';
+import 'package:workcheck/services/device_service.dart';
 import 'package:workcheck/services/prediction_service.dart';
 import 'package:workcheck/services/shell_service.dart';
 
@@ -21,8 +20,7 @@ class HomeViewModel extends ReactiveViewModel {
 
   final _shellService = locator<ShellService>();
   final _predictionService = locator<PredictionService>();
-  final _dialogService = locator<DialogService>();
-  final _openAiService = locator<OpenAiService>();
+  final _deviceService = locator<DeviceService>();
 
   Timer? _timer;
   Timer? get timer => _timer;
@@ -33,12 +31,9 @@ class HomeViewModel extends ReactiveViewModel {
   List<PredictionResultModel> get predictionResults =>
       _predictionService.predictionResults;
 
-  String? _summaryOfToday;
-  String? get summaryOfToday => _summaryOfToday;
-
   void init() {
+    _deviceService.save();
     _getScreenshots();
-
     _predictionService.startStreamByDeviceId();
   }
 
@@ -199,51 +194,6 @@ class HomeViewModel extends ReactiveViewModel {
     } catch (e) {
       log.e('Error capturing screenshot: $e');
       return null;
-    }
-  }
-
-  Future<void> getSummaryOfToday() async {
-    if (busy('getSummaryOfToday')) return;
-    setBusyForObject('getSummaryOfToday', true);
-
-    _summaryOfToday = null;
-
-    try {
-      // today 00:00
-      final from = DateTime.now().add(
-        Duration(
-          hours: -DateTime.now().hour,
-          minutes: -DateTime.now().minute,
-          seconds: -DateTime.now().second,
-        ),
-      );
-      // today 23:59
-      final to = DateTime.now().add(
-        Duration(
-          hours: 23 - DateTime.now().hour,
-          minutes: 59 - DateTime.now().minute,
-          seconds: 59 - DateTime.now().second,
-        ),
-      );
-
-      final descriptions = await _predictionService.getDescriptions(
-        from: from,
-        to: to,
-      );
-
-      if (descriptions.isEmpty) {
-        throw 'There are no descriptions for today. Please wait for the next prediction.';
-      }
-
-      _summaryOfToday = await _openAiService.getSummaryOfToday(descriptions);
-    } catch (e) {
-      log.e(e);
-
-      await _dialogService.showDialog(
-        description: e.toString(),
-      );
-    } finally {
-      setBusyForObject('getSummaryOfToday', false);
     }
   }
 
